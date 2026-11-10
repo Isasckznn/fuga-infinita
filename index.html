@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#050713">
+<title>FUGA INFINITA — FRACTURE</title>
+<style>
+:root{--cyan:#62f6ff;--pink:#ff3dcb;--violet:#8a63ff;--ink:#050713}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050713;color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 35%,rgba(2,4,14,.35) 78%,rgba(1,2,8,.88) 130%);z-index:2}
+#grain{position:absolute;inset:0;pointer-events:none;opacity:.08;z-index:3;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E")}
+.hud{position:absolute;z-index:5;inset:0;pointer-events:none;padding:calc(env(safe-area-inset-top) + 16px) 18px calc(env(safe-area-inset-bottom) + 18px);display:flex;flex-direction:column;justify-content:space-between}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.brand{font-size:11px;letter-spacing:.32em;font-weight:900;color:#b9fbff;text-shadow:0 0 18px #40dfff}
+.brand span{display:block;color:#fff;font-size:22px;letter-spacing:.16em;margin-top:4px}
+.stats{display:flex;gap:8px}
+.stat{min-width:76px;padding:9px 11px;border:1px solid #6eeeff42;background:linear-gradient(135deg,#0c1a2dbb,#080b18a8);backdrop-filter:blur(12px);border-radius:12px;text-align:right;box-shadow:inset 0 0 18px #47dfff0b}
+.stat small{display:block;font-size:8px;letter-spacing:.2em;color:#8caab9}.stat b{font-size:19px;letter-spacing:.04em}
+.bottom{display:flex;justify-content:space-between;align-items:flex-end}
+.mission{max-width:220px;color:#91aebe;font-size:10px;letter-spacing:.12em;line-height:1.6;text-transform:uppercase}
+.mission strong{display:block;color:#d7fcff;font-size:12px;letter-spacing:.2em}
+.energy{width:112px;text-align:right}.energy label{font-size:8px;letter-spacing:.22em;color:#a2c5d0}.bar{height:4px;background:#173044;border-radius:9px;margin-top:7px;overflow:hidden}.bar i{display:block;width:100%;height:100%;background:linear-gradient(90deg,#53f5ff,#b9ffff);box-shadow:0 0 12px #4ff5ff}
+.overlay{position:absolute;z-index:8;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 48%,#09152880,#02040bd9 75%);backdrop-filter:blur(5px)}
+.panel{width:min(440px,100%);text-align:center;padding:34px 24px 28px;border:1px solid #74eaff55;border-radius:24px;background:linear-gradient(150deg,#10243bdc,#070b19ee 70%);box-shadow:0 0 70px #00d9ff19,inset 0 0 40px #4eeaff0b;position:relative;overflow:hidden}
+.panel:before{content:"";position:absolute;inset:0 15% auto;height:1px;background:linear-gradient(90deg,transparent,#8ffaff,transparent)}
+.eyebrow{font-size:9px;letter-spacing:.42em;color:#6ceeff;font-weight:900}
+h1{font-size:clamp(36px,10vw,58px);line-height:.95;letter-spacing:.04em;margin:14px 0 10px;font-weight:1000;text-shadow:0 0 28px #27dfff66}
+h1 em{font-style:normal;color:#72f5ff}
+.subtitle{color:#9ab4c7;font-size:12px;line-height:1.7;max-width:300px;margin:0 auto 23px}
+button{font:inherit;color:#fff;border:0;cursor:pointer}
+.primary{pointer-events:auto;width:100%;padding:16px 18px;border-radius:12px;background:linear-gradient(100deg,#14bcd5,#5b67ff 65%,#bd4fe9);font-size:12px;font-weight:1000;letter-spacing:.24em;box-shadow:0 8px 32px #1bc9e944,inset 0 1px #ffffff70}
+.hint{font-size:9px;color:#7193a8;letter-spacing:.16em;margin-top:17px}
+.hidden{display:none!important}
+.controls{position:absolute;z-index:6;bottom:calc(env(safe-area-inset-bottom) + 76px);left:0;right:0;display:flex;justify-content:space-between;padding:0 22px;pointer-events:none}
+.ctrl{pointer-events:auto;width:56px;height:56px;border-radius:18px;border:1px solid #8df4ff66;background:#07152688;color:#bffaff;font-size:23px;backdrop-filter:blur(10px);box-shadow:0 0 20px #27dfff16;display:grid;place-items:center}
+.ctrl:active{background:#1b4964}
+.ctrlgroup{display:flex;gap:10px}
+#pause{pointer-events:auto;position:absolute;z-index:7;right:18px;top:calc(env(safe-area-inset-top) + 74px);width:36px;height:36px;border-radius:11px;background:#0a1b2bb0;border:1px solid #73eaff55;color:#bdfaff;font-size:14px}
+@media(min-width:700px){.controls{bottom:28px}.ctrl{width:64px;height:64px}.hud{padding:28px 34px}.stat{min-width:100px}.mission{font-size:11px}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas><div id="vignette"></div><div id="grain"></div>
+<div class="hud">
+ <div class="top"><div class="brand">EXPERIMENTO 07<span>FUGA INFINITA</span></div><div class="stats"><div class="stat"><small>DISTÂNCIA</small><b id="score">00000</b></div><div class="stat"><small>FRAGMENTOS</small><b id="shards">00</b></div></div></div>
+ <div class="bottom"><div class="mission"><strong id="sector">SETOR 01 · LIMIAR</strong><span id="status">A REALIDADE ESTÁ COLAPSANDO</span></div><div class="energy"><label>INTEGRIDADE</label><div class="bar"><i id="energy"></i></div></div></div>
+</div>
+<button id="pause" aria-label="Pausar">Ⅱ</button>
+<div class="controls"><div class="ctrlgroup"><button class="ctrl" id="left">‹</button><button class="ctrl" id="right">›</button></div><div class="ctrlgroup"><button class="ctrl" id="jump">↑</button></div></div>
+<div class="overlay" id="screen"><div class="panel"><div class="eyebrow">SOBREVIVA À FRATURA</div><h1>FUGA<br><em>INFINITA</em></h1><p class="subtitle">O universo está se desfazendo. Corra entre dimensões, atravesse fendas e recolha fragmentos antes que tudo desapareça.</p><button class="primary" id="start">INICIAR SEQUÊNCIA</button><div class="hint">DESLIZE PARA MOVER · TOQUE PARA SALTAR</div></div></div>
+<script>
+(()=>{
+'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d',{alpha:false});
+const $=id=>document.getElementById(id);
+let W=0,H=0,D=1,last=0,raf=0,mode='menu',time=0,distance=0,shards=0,integrity=100,speed=0.42,lane=0,targetLane=0,jump=0,jumpV=0,shake=0,flash=0,spawn=0,objects=[],particles=[],stars=[];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rand=(a,b)=>a+Math.random()*(b-a);
+function resize(){D=Math.min(devicePixelRatio||1,1.7);W=innerWidth;H=innerHeight;canvas.width=Math.floor(W*D);canvas.height=Math.floor(H*D);ctx.setTransform(D,0,0,D,0,0);stars=Array.from({length:95},()=>({x:Math.random()*W,y:Math.random()*H*.7,z:rand(.2,1),s:rand(.4,1.8)}))}
+addEventListener('resize',resize);resize();
+function poly(points,fill,stroke,lw=1){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke()}}
+function line(x1,y1,x2,y2,color,w=1){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=w;ctx.stroke()}
+function glow(color,blur){ctx.shadowColor=color;ctx.shadowBlur=blur}
+function project(x,z){let horizon=H*.34,depth=1/(z+0.17);let y=horizon+(H*.78-horizon)*(1-depth*.14);let spread=(W*.47)*(1-depth*.72);return {x:W/2+x*spread,y,scale:.22+depth*.92}}
+function addParticle(x,y,color,n=8,power=1){for(let i=0;i<n;i++){let a=rand(0,Math.PI*2),v=rand(.5,4)*power;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.3,.9),max:.9,color,size:rand(1,3)})}}
+function spawnObject(){let r=Math.random(),type=r<.46?'shard':r<.76?'block':r<.9?'gate':'wall';let ln=Math.floor(rand(-1,2));objects.push({type,lane:ln,z:rand(8,10),spin:0,hit:false})}
+function background(dt){
+ const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#050817');sky.addColorStop(.48,'#101b39');sky.addColorStop(1,'#090b1b');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ // distant fractured planet
+ let px=W*.72,py=H*.24,pr=Math.min(W,H)*.12;
+ let g=ctx.createRadialGradient(px-pr*.3,py-pr*.35,2,px,py,pr*1.4);g.addColorStop(0,'#b8faff');g.addColorStop(.12,'#5cecff');g.addColorStop(.42,'#6749b9');g.addColorStop(1,'#17112e00');
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,pr*1.4,0,Math.PI*2);ctx.fill();
+ ctx.save();ctx.globalAlpha=.3;ctx.strokeStyle='#9c8cff';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(px,py,pr*1.8,pr*.5,-.18,0,Math.PI*2);ctx.stroke();ctx.restore();
+ for(const s of stars){s.y+=s.z*dt*13;if(s.y>H*.72){s.y=0;s.x=Math.random()*W}ctx.fillStyle=`rgba(180,230,255,${s.z*.65})`;ctx.fillRect(s.x,s.y,s.s,s.s)}
+ // city silhouettes
+ for(let layer=0;layer<2;layer++){let base=H*.57+layer*H*.055;for(let i=0;i<14;i++){let bw=W/11, x=i*bw-(time*(layer?8:3))%(bw*2), bh=(.08+((i*37)%9)/70)*H*(layer?1.1:.8);ctx.fillStyle=layer?'#0b1730':'#111d39';ctx.fillRect(x,base-bh,bw*.72,bh);ctx.fillStyle=layer?'#1a5470':'#243e68';for(let wy=base-bh+8;wy<base-5;wy+=13)for(let wx=x+5;wx<x+bw*.65;wx+=11){ctx.globalAlpha=.12+((i+Math.floor(wy))%3)*.07;ctx.fillRect(wx,wy,2,4)}ctx.globalAlpha=1}}
+ // horizon glow
+ let hg=ctx.createLinearGradient(0,H*.45,0,H*.7);hg.addColorStop(0,'#22c9ff00');hg.addColorStop(.55,'#28baff24');hg.addColorStop(1,'#ff39d21a');ctx.fillStyle=hg;ctx.fillRect(0,H*.4,W,H*.35);
+}
+function drawTrack(){
+ const horizon=H*.35, bottom=H*1.08, halfTop=W*.055,halfBottom=W*.48;
+ poly([[W/2-halfTop,horizon],[W/2+halfTop,horizon],[W/2+halfBottom,bottom],[W/2-halfBottom,bottom]],'#101b32','#3ceaff55',1.2);
+ // track panels
+ for(let i=0;i<12;i++){let z=(i/12+(time*speed*.14)%1);let y=horizon+(bottom-horizon)*z*z;let half=halfTop+(halfBottom-halfTop)*z;line(W/2-half,y,W/2+half,y,`rgba(63,221,255,${.04+z*.18})`,1+z*1.2)}
+ for(let k=-1;k<=1;k+=2){let x1=W/2+k*halfTop*.34,x2=W/2+k*halfBottom*.34;line(x1,horizon,x2,bottom,'#58eaff55',1.2)}
+ // side rails
+ for(let side of [-1,1]){let x=W/2+side*halfBottom;line(W/2+side*halfTop,horizon,x,bottom,'#ff4ed855',2);for(let i=0;i<18;i++){let z=(i/18+(time*speed*.45)%1)%1,y=horizon+(bottom-horizon)*z*z,half=halfTop+(halfBottom-halfTop)*z*z;let xx=W/2+side*half;ctx.fillStyle=`rgba(89,245,255,${z*.7})`;ctx.fillRect(xx-2,y-2,4+z*4,2+z*2)}}
+}
+function drawPortal(x,y,s,phase=0){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.rotate(Math.sin(time*1.2+phase)*.025);
+ glow('#4eefff',24);ctx.strokeStyle='#4eefff';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,34,61,0,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
+ ctx.strokeStyle='#d4a0ff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,24,49,0,0,Math.PI*2);ctx.stroke();
+ let gr=ctx.createRadialGradient(0,0,2,0,0,35);gr.addColorStop(0,'#a8fbff88');gr.addColorStop(.5,'#764dff44');gr.addColorStop(1,'#0ceaff00');ctx.fillStyle=gr;ctx.beginPath();ctx.ellipse(0,0,29,55,0,0,Math.PI*2);ctx.fill();
+ for(let i=0;i<5;i++){let a=time*2+i*Math.PI*2/5;ctx.fillStyle='#bafaff';ctx.beginPath();ctx.arc(Math.cos(a)*29,Math.sin(a)*52,2.4,0,7);ctx.fill()}ctx.restore();
+}
+function drawObject(o){
+ let p=project(o.lane,o.z),s=p.scale*1.05,x=p.x,y=p.y;
+ if(o.type==='shard'){ctx.save();ctx.translate(x,y-25*s);ctx.rotate(time*2.4+o.spin);glow('#6fffff',22*s);poly([[0,-17*s],[10*s,0],[0,17*s],[-10*s,0]],'#b5ffff','#35dfff',2*s);ctx.shadowBlur=0;poly([[0,-17*s],[0,17*s],[10*s,0]],'#39baffaa',null);ctx.restore()}
+ else if(o.type==='block'){let w=27*s,h=47*s;glow('#ff3fbd',18*s);poly([[x-w,y-h],[x+w,y-h],[x+w*1.25,y],[x-w*1.25,y]],'#351a43','#ff64d2',2*s);poly([[x-w,y-h],[x,y-h-12*s],[x+w,y-h]],'#8a3a86','#ff9be5',1*s);ctx.shadowBlur=0;line(x-w*.6,y-h*.65,x+w*.6,y-h*.65,'#ffc0ef',1.5*s)}
+ else if(o.type==='gate'){drawPortal(x,y-40*s,.75*s)}
+ else{let w=42*s,h=58*s;poly([[x-w,y-h],[x+w,y-h],[x+w*1.3,y],[x-w*1.3,y]],'#311a3b','#ff4cbb',2*s);line(x-w,y-h,x-w*1.3,y,'#ff83d8',2*s)}
+}
+function drawRunner(){
+ let p=project(lane,0.75),x=p.x,y=H*.79-jump*75,s=Math.min(W,H)/430;
+ // shadow
+ ctx.save();ctx.globalAlpha=.35*(1-jump*.5);let sh=ctx.createRadialGradient(x,y+25*s,2,x,y+25*s,38*s);sh.addColorStop(0,'#54eaffaa');sh.addColorStop(1,'#54eaff00');ctx.fillStyle=sh;ctx.beginPath();ctx.ellipse(x,y+25*s,38*s,10*s,0,0,7);ctx.fill();ctx.restore();
+ // energy wake
+ for(let i=0;i<4;i++){let yy=y+12*s+i*10*s;line(x-12*s,yy,x+12*s,yy+rand(2,8)*s,`rgba(65,238,255,${.3-i*.06})`,3*s)}
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+ let run=Math.sin(time*14), lean=-.08;
+ ctx.rotate(lean);
+ // legs
+ glow('#36dfff',12);
+ line(-7,4,-13+run*5,27,'#243c69',8);line(-13+run*5,27,-20+run*10,42,'#6ceeff',6);
+ line(7,4,13-run*5,27,'#243c69',8);line(13-run*5,27,20-run*10,42,'#b45aff',6);
+ // torso armor silhouette
+ poly([[-13,-22],[-17,-7],[-11,9],[11,9],[17,-7],[13,-22],[0,-29]],'#172b4d','#68f5ff',2);
+ poly([[-10,-19],[0,-25],[10,-19],[7,-2],[-7,-2]],'#4ed9ec','#c7ffff',1);
+ poly([[-6,-15],[0,-20],[6,-15],[4,-7],[-4,-7]],'#f0ffff','#65eaff',1);
+ // arms
+ line(-13,-17,-23+run*3,-2,'#345078',7);line(13,-17,23-run*3,-2,'#345078',7);
+ // helmet
+ glow('#66edff',18);ctx.beginPath();ctx.ellipse(0,-34,12,15,0,0,7);ctx.fillStyle='#172d4c';ctx.fill();ctx.strokeStyle='#b9fbff';ctx.lineWidth=2;ctx.stroke();
+ ctx.fillStyle='#62efff';ctx.beginPath();ctx.ellipse(0,-35,8,5,0,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(-2,-37,4,2);
+ // shoulder lights
+ ctx.fillStyle='#ff65d8';ctx.beginPath();ctx.arc(-14,-18,3,0,7);ctx.arc(14,-18,3,0,7);ctx.fill();
+ ctx.restore();
+}
+function render(dt){
+ background(dt);drawTrack();
+ // distant portal on horizon
+ drawPortal(W*.5,H*.39,.55+Math.sin(time)*.025,0);
+ objects.sort((a,b)=>b.z-a.z);for(const o of objects)drawObject(o);
+ drawRunner();
+ for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.025;p.life-=dt;ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=12;ctx.fillRect(p.x,p.y,p.size,p.size);if(p.life<=0)particles.splice(i,1)}ctx.globalAlpha=1;ctx.shadowBlur=0;
+ if(flash>0){ctx.fillStyle=`rgba(255,50,190,${flash*.22})`;ctx.fillRect(0,0,W,H);flash=Math.max(0,flash-dt*2)}
+ if(shake>0)shake=Math.max(0,shake-dt*2);
+}
+function update(dt){
+ time+=dt;distance+=dt*speed*85;speed=Math.min(.95,.42+distance/12000);
+ lane+=(targetLane-lane)*Math.min(1,dt*12);
+ if(jump>0||jumpV>0){jump+=jumpV*dt;jumpV-=3.6*dt;if(jump<0){jump=0;jumpV=0}}
+ spawn-=dt;if(spawn<=0){spawnObject();spawn=rand(.65,1.05)/ (speed/.42)}
+ for(let i=objects.length-1;i>=0;i--){let o=objects[i];o.z-=dt*speed*3.4;o.spin+=dt*2.5;
+ if(o.z<1.05&&!o.hit&&Math.abs(o.lane-lane)<.55){o.hit=true;if(o.type==='shard'){shards++;addParticle(project(o.lane,o.z).x,project(o.lane,o.z).y-20,'#72faff',12,1.4)}else if(o.type==='block'||o.type==='wall'){if(jump<.35){integrity-=24;shake=.5;flash=.7;addParticle(W/2,H*.75,'#ff4bca',20,2)}else addParticle(W/2,H*.75,'#64faff',8,1)}else{speed=Math.min(1,speed+.025);integrity=Math.min(100,integrity+8);flash=.25}}
+ if(o.z<-.1)objects.splice(i,1)}
+ integrity=Math.max(0,integrity-dt*.28);
+ if(integrity<=0){endGame();return}
+ $('score').textContent=String(Math.floor(distance)).padStart(5,'0');$('shards').textContent=String(shards).padStart(2,'0');$('energy').style.width=integrity+'%';
+ let sector=Math.floor(distance/900)+1;let names=['LIMIAR','CIDADE VAZIA','NÚCLEO INSTÁVEL','MAR DE VIDRO','ÚLTIMA FENDA'];$('sector').textContent=`SETOR ${String(sector).padStart(2,'0')} · ${names[(sector-1)%names.length]}`;$('status').textContent=sector>1?'A FRATURA ESTÁ SE EXPANDINDO':'A REALIDADE ESTÁ COLAPSANDO';
+}
+function loop(ts){if(!last)last=ts;let dt=Math.min((ts-last)/1000,.033);last=ts;if(mode==='play')update(dt);render(dt);raf=requestAnimationFrame(loop)}
+function start(){mode='play';distance=0;shards=0;integrity=100;speed=.42;lane=0;targetLane=0;jump=0;jumpV=0;objects=[];particles=[];spawn=.5;$('screen').classList.add('hidden');$('pause').textContent='Ⅱ';last=0}
+function endGame(){mode='over';$('screen').classList.remove('hidden');$('screen').querySelector('.eyebrow').textContent='SINAL PERDIDO';$('screen').querySelector('h1').innerHTML='FIM DA<br><em>LINHA</em>';$('screen').querySelector('.subtitle').textContent=`Você percorreu ${Math.floor(distance)} metros e coletou ${shards} fragmentos. A fratura ainda está aberta.`;$('start').textContent='TENTAR NOVAMENTE'}
+function pause(){if(mode==='play'){mode='pause';$('screen').classList.remove('hidden');$('screen').querySelector('.eyebrow').textContent='SEQUÊNCIA SUSPENSA';$('screen').querySelector('h1').innerHTML='PAUSA';$('screen').querySelector('.subtitle').textContent='Respire. A dimensão continua esperando.';$('start').textContent='CONTINUAR'}else if(mode==='pause'){mode='play';$('screen').classList.add('hidden');last=0}}
+function move(d){if(mode!=='play')return;targetLane=clamp(targetLane+d,-1,1);addParticle(W/2+targetLane*W*.12,H*.8,'#65efff',4,.6)}
+function doJump(){if(mode==='play'&&jump===0){jumpV=2.5;addParticle(W/2,H*.8,'#67faff',9,1)}}
+$('start').addEventListener('click',()=>mode==='pause'?pause():start());$('pause').addEventListener('click',pause);$('left').addEventListener('click',()=>move(-1));$('right').addEventListener('click',()=>move(1));$('jump').addEventListener('click',doJump);
+let sx=0,sy=0;canvas.addEventListener('touchstart',e=>{sx=e.changedTouches[0].clientX;sy=e.changedTouches[0].clientY},{passive:true});canvas.addEventListener('touchend',e=>{if(mode!=='play')return;let dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>25)move(dx>0?1:-1);else if(dy< -20)doJump();else if(Math.abs(dy)<20)doJump()},{passive:true});
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a')move(-1);if(e.key==='ArrowRight'||e.key==='d')move(1);if(e.key===' '||e.key==='ArrowUp')doJump();if(e.key==='Escape')pause()});
+requestAnimationFrame(loop);
+})();
+</script>
+</body></html>
